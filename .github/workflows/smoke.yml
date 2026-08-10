@@ -13,6 +13,10 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - run: pip install -r requirements.txt
+      - name: Test public claim guard
+        run: python -m unittest discover -s tests -v
+      - name: Check claims against canonical product facts
+        run: python scripts/check_public_claims.py
       # Only the keyless recipe runs in CI — no secrets in a public repo.
       # A recipe that stops working must fail loudly, not sit broken.
       - run: python recipes/01_first_price_no_key.py

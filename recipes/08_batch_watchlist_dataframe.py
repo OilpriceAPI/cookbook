@@ -1,9 +1,9 @@
 """Your whole watchlist in one request — batch, pandas, CSV.
 
-The naive loop asks eight times for what one request answers. Eight codes
-polled hourly is 5,760 calls a month — more than half a Developer quota
-spent re-asking one question. POST /v1/prices/batch returns them all in
-one call, and one call is what it costs against your quota.
+The naive loop asks six times for what one request answers. Polling six codes
+separately each hour makes 4,320 calls in a 30-day month; batching the same
+schedule makes 720. POST /v1/prices/batch returns them all in one call, and
+one call is what it costs against your quota.
 
 The watchlist below deliberately spans surfaces most integrations never
 touch: a crude benchmark, a Permian gas hub, a Santos bunker grade,

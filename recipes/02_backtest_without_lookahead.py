@@ -4,9 +4,12 @@ Sources restate numbers after first publication. A backtest that reads
 today's data sees revisions that did not exist at decision time, and
 quietly overstates its own performance.
 
-Add `as_of` to any history endpoint and the API returns the series as it
-was knowable at that instant: rows collected later are absent, and values
-revised later are rolled back to what was published at the time.
+`as_of` is supported on exactly four price-window endpoints:
+`/v1/prices/past_day`, `/v1/prices/past_week`, `/v1/prices/past_month`, and
+`/v1/prices/past_year`. Send `interval=raw`; rows collected after the requested
+instant are absent, and corrections recorded from 2026-07-28 forward are
+rolled back to what was published at the time. Do not infer correction-vintage
+coverage before that boundary.
 
 Real example: on 7 August 2026 the US diesel price for that day was
 published as 3.88, then revised to 3.90 at 22:10 UTC. A backtest deciding
@@ -26,7 +29,7 @@ KEY = os.environ.get("OILPRICEAPI_KEY")
 if not KEY:
     raise SystemExit("Set OILPRICEAPI_KEY — free key at https://oilpriceapi.com/auth/signup")
 HEADERS = {"Authorization": f"Token {KEY}"}
-PARAMS = {"by_code": "DIESEL_USD", "per_page": 3}
+PARAMS = {"by_code": "DIESEL_USD", "interval": "raw", "per_page": 3}
 
 # The world as it was knowable on 7 Aug 2026 at 22:00 UTC
 resp = requests.get(
@@ -54,6 +57,5 @@ for p in current[: len(vintage)]:
 
 # Response headers tell you the vintage contract:
 #   X-Vintage-As-Of: the instant you asked for
-#   X-Vintage-Revision-Coverage-Since: revisions are rolled back from this
-#     date forward (2026-07-28); values before a series' collection start
-#     have no vintages, by construction.
+#   X-Vintage-Revision-Coverage-Since: corrections recorded from this date
+#     forward are rolled back (currently 2026-07-28).

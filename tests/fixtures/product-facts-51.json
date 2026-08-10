@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "1.0.0",
+  "contractVersion": "2026-07-18",
+  "reviewedAt": "2026-07-18",
+  "canonicalUrl": "https://api.oilpriceapi.com/product-facts.json",
+  "offer": {
+    "freeRequestsPerMonth": 51
+  }
+}

@@ -1,6 +1,6 @@
 """A production client in 40 lines — errors, 429 backoff, quota headers.
 
-The first error a free-tier integration meets is the 200-request monthly
+The first error a free-tier integration meets is the 50-request monthly
 cap. This recipe shows what the API's errors actually look like and how
 to handle them, instead of a stack trace.
 
