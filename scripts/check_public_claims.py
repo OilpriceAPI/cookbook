@@ -31,9 +31,27 @@ SUPPORTED_AS_OF_ROUTES = (
 )
 AS_OF_COVERAGE_START = "2026-07-28"
 ALLOWANCE_PATTERNS = (
-    re.compile(r"(?P<count>\d[\d,]*)\s+requests?/month\b", re.IGNORECASE),
-    re.compile(r"(?P<count>\d[\d,]*)-request\s+monthly\b", re.IGNORECASE),
+    re.compile(
+        r"(?P<count>\d[\d,]*)(?:\s*-\s*|\s+)"
+        r"(?:api(?:\s*-\s*|\s+))?(?:requests?|calls?)"
+        r"(?:\s*-\s*per\s*-\s*|\s+per\s+|\s*/\s*|\s+)month(?:ly)?\b",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"(?P<count>\d[\d,]*)(?:\s*-\s*|\s+)monthly"
+        r"(?:\s*-\s*|\s+)(?:api(?:\s*-\s*|\s+))?(?:requests?|calls?)\b",
+        re.IGNORECASE,
+    ),
 )
+FREE_CONTEXT_PATTERN = re.compile(
+    r"\bfree(?:[-\s]+(?:tier|plan|key|account))?\b", re.IGNORECASE
+)
+CLAUSE_BOUNDARY_PATTERN = re.compile(r"[.;]|\b(?:but|whereas|while)\b", re.IGNORECASE)
+PLAN_HEADER_NAMES = frozenset({"plan", "tier"})
+ALLOWANCE_HEADER_TERMS = frozenset(
+    {"allowance", "allowances", "call", "calls", "quota", "request", "requests"}
+)
+MONTH_HEADER_TERMS = frozenset({"month", "monthly"})
 FORBIDDEN_BROAD_AS_OF_PATTERNS = (
     re.compile(r"\bany\s+history\s+endpoint\b", re.IGNORECASE),
     re.compile(r"\b(?:on|for)\s+any\s+date\b", re.IGNORECASE),
@@ -109,16 +127,111 @@ def _canonical_allowance(product_facts: dict[str, Any]) -> int:
     return allowance
 
 
+def _parse_count(value: str) -> int:
+    normalized = value.lower()
+    if normalized in NUMBER_WORDS:
+        return NUMBER_WORDS[normalized]
+    return int(normalized.replace(",", ""))
+
+
+def _inline_free_allowance_claims(text: str) -> list[int]:
+    claims: list[int] = []
+    for line in text.splitlines():
+        if line.lstrip().startswith("|") or not FREE_CONTEXT_PATTERN.search(line):
+            continue
+        seen_spans: set[tuple[int, int]] = set()
+        for pattern in ALLOWANCE_PATTERNS:
+            for match in pattern.finditer(line):
+                if match.span() in seen_spans:
+                    continue
+                seen_spans.add(match.span())
+                boundaries = list(CLAUSE_BOUNDARY_PATTERN.finditer(line))
+                clause_start = max(
+                    (boundary.end() for boundary in boundaries if boundary.end() <= match.start()),
+                    default=0,
+                )
+                clause_end = min(
+                    (
+                        boundary.start()
+                        for boundary in boundaries
+                        if boundary.start() >= match.end()
+                    ),
+                    default=len(line),
+                )
+                if not FREE_CONTEXT_PATTERN.search(line[clause_start:clause_end]):
+                    continue
+                claims.append(_parse_count(match.group("count")))
+    return claims
+
+
+def _markdown_cells(line: str) -> list[str] | None:
+    stripped = line.strip()
+    if "|" not in stripped:
+        return None
+    return [cell.strip() for cell in stripped.strip("|").split("|")]
+
+
+def _normalized_table_cell(cell: str) -> str:
+    return " ".join(re.findall(r"[a-z0-9]+", cell.lower()))
+
+
+def _is_table_divider(cells: list[str]) -> bool:
+    return bool(cells) and all(
+        re.fullmatch(r":?-{3,}:?", cell.replace(" ", "")) for cell in cells
+    )
+
+
+def _is_monthly_allowance_header(cell: str) -> bool:
+    terms = set(_normalized_table_cell(cell).split())
+    return bool(terms & ALLOWANCE_HEADER_TERMS) and bool(terms & MONTH_HEADER_TERMS)
+
+
+def _table_free_allowance_claims(text: str) -> list[int]:
+    lines = text.splitlines()
+    claims: list[int] = []
+
+    for index in range(len(lines) - 2):
+        header = _markdown_cells(lines[index])
+        divider = _markdown_cells(lines[index + 1])
+        if not header or not divider or len(header) != len(divider):
+            continue
+        if not _is_table_divider(divider):
+            continue
+
+        plan_columns = [
+            column
+            for column, cell in enumerate(header)
+            if _normalized_table_cell(cell) in PLAN_HEADER_NAMES
+        ]
+        allowance_columns = [
+            column
+            for column, cell in enumerate(header)
+            if _is_monthly_allowance_header(cell)
+        ]
+        if not plan_columns or not allowance_columns:
+            continue
+
+        for row_line in lines[index + 2 :]:
+            row = _markdown_cells(row_line)
+            if not row or len(row) != len(header) or _is_table_divider(row):
+                break
+            if not any(
+                FREE_CONTEXT_PATTERN.search(row[column]) for column in plan_columns
+            ):
+                continue
+            for column in allowance_columns:
+                if match := re.search(r"(?<!\d)(?P<count>\d[\d,]*)(?!\d)", row[column]):
+                    claims.append(_parse_count(match.group("count")))
+
+    return claims
+
+
 def _check_allowance(
     sources: dict[Path, str], allowance: int, errors: list[str]
 ) -> None:
     paths_with_claims: set[Path] = set()
     for relative_path, text in sources.items():
-        claims = [
-            int(match.group("count").replace(",", ""))
-            for pattern in ALLOWANCE_PATTERNS
-            for match in pattern.finditer(text)
-        ]
+        claims = _inline_free_allowance_claims(text) + _table_free_allowance_claims(text)
         if claims:
             paths_with_claims.add(relative_path)
         for claim in claims:
@@ -189,13 +302,6 @@ def _watchlist_size(recipe: str, path: Path) -> int:
         if isinstance(node.value, (ast.List, ast.Tuple)):
             return len(node.value.elts)
     raise ClaimCheckError(f"{path}: WATCHLIST must remain a literal list or tuple")
-
-
-def _parse_count(value: str) -> int:
-    normalized = value.lower()
-    if normalized in NUMBER_WORDS:
-        return NUMBER_WORDS[normalized]
-    return int(normalized.replace(",", ""))
 
 
 def _check_watchlist_math(root: Path, errors: list[str]) -> None:
