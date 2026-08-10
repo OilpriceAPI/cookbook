@@ -1,0 +1,102 @@
+[
+  {
+    "file": "recipes/01_first_price_no_key.py",
+    "title": "First price, no key",
+    "endpoints": ["/v1/demo/prices/latest"],
+    "min_plan_usd_month": 0,
+    "key_required": false,
+    "intents": ["try the API", "demo prices", "no signup"]
+  },
+  {
+    "file": "recipes/02_backtest_without_lookahead.py",
+    "title": "Backtest without lookahead bias (as_of vintage history)",
+    "endpoints": ["/v1/prices/past_week"],
+    "params_demonstrated": ["as_of", "by_code", "start_date", "end_date"],
+    "min_plan_usd_month": 19,
+    "key_required": true,
+    "intents": [
+      "backtesting",
+      "point-in-time data",
+      "data revisions",
+      "lookahead bias"
+    ]
+  },
+  {
+    "file": "recipes/03_gas_hub_basis.py",
+    "title": "US natural gas hub basis to Henry Hub",
+    "endpoints": ["/v1/natural-gas/hubs"],
+    "min_plan_usd_month": 19,
+    "key_required": true,
+    "intents": ["Waha price", "gas basis", "regional natural gas"]
+  },
+  {
+    "file": "recipes/04_bunker_prices_by_port.py",
+    "title": "Marine (bunker) fuel prices by port",
+    "endpoints": ["/v1/prices/latest", "/v1/prices/marine-fuels/latest"],
+    "min_plan_usd_month": 19,
+    "key_required": true,
+    "intents": ["VLSFO price", "bunker fuel", "Singapore", "Santos"]
+  },
+  {
+    "file": "recipes/05_deep_history_1997.py",
+    "title": "Deep history with arbitrary date ranges",
+    "endpoints": ["/v1/prices"],
+    "params_demonstrated": ["by_period[from]", "by_period[to]"],
+    "min_plan_usd_month": 19,
+    "key_required": true,
+    "intents": ["historical prices", "1997", "long time series"]
+  },
+  {
+    "file": "recipes/06_check_series_quality.py",
+    "title": "Check a series' quality grade",
+    "endpoints": [
+      "/v1/data-quality/reports/{code}",
+      "/v1/data-quality/summary"
+    ],
+    "min_plan_usd_month": 19,
+    "key_required": true,
+    "intents": ["data quality", "completeness", "freshness"]
+  },
+  {
+    "file": "recipes/07_futures_curve_contango.py",
+    "title": "Futures curve structure (contango/backwardation)",
+    "endpoints": ["/v1/futures/{slug}/curve"],
+    "min_plan_usd_month": 99,
+    "key_required": true,
+    "intents": ["futures curve", "contango", "term structure"]
+  },
+  {
+    "file": "recipes/08_batch_watchlist_dataframe.py",
+    "title": "Whole watchlist in one request (batch + pandas + CSV)",
+    "endpoints": ["/v1/prices/batch"],
+    "min_plan_usd_month": 19,
+    "key_required": true,
+    "intents": [
+      "batch prices",
+      "pandas DataFrame",
+      "quota efficiency",
+      "watchlist"
+    ]
+  },
+  {
+    "file": "recipes/09_agent_tool.py",
+    "title": "Give an AI agent live commodity prices (tool + MCP)",
+    "endpoints": ["/v1/prices/latest"],
+    "min_plan_usd_month": 0,
+    "key_required": true,
+    "intents": [
+      "AI agent tool",
+      "OpenAI function calling",
+      "LangChain",
+      "MCP server"
+    ]
+  },
+  {
+    "file": "recipes/10_resilient_client.py",
+    "title": "Production client: errors, 429 backoff, quota",
+    "endpoints": ["/v1/prices/latest", "/v1/dashboard"],
+    "min_plan_usd_month": 0,
+    "key_required": true,
+    "intents": ["error handling", "rate limits", "retry", "quota"]
+  }
+]

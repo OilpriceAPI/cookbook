@@ -22,20 +22,34 @@ import os
 import requests
 
 API = "https://api.oilpriceapi.com/v1/prices/past_week"
-HEADERS = {"Authorization": f"Token {os.environ['OILPRICEAPI_KEY']}"}
+KEY = os.environ.get("OILPRICEAPI_KEY")
+if not KEY:
+    raise SystemExit("Set OILPRICEAPI_KEY — free key at https://oilpriceapi.com/auth/signup")
+HEADERS = {"Authorization": f"Token {KEY}"}
 PARAMS = {"by_code": "DIESEL_USD", "per_page": 3}
 
 # The world as it was knowable on 7 Aug 2026 at 22:00 UTC
-vintage = requests.get(
+resp = requests.get(
     API, headers=HEADERS, timeout=10,
     params={**PARAMS, "as_of": "2026-08-07T22:00:00Z"},
-).json()["data"]["prices"]
+)
+resp.raise_for_status()
+vintage = resp.json()["data"]["prices"]
 
 # The world as it is known today (revisions applied)
-current = requests.get(API, headers=HEADERS, timeout=10, params=PARAMS).json()
+resp = requests.get(
+    API, headers=HEADERS, timeout=10,
+    params={**PARAMS, "start_date": "2026-08-07", "end_date": "2026-08-08"},
+)
+resp.raise_for_status()
+current = resp.json()["data"]["prices"]
 
 print("as-of 2026-08-07 22:00 UTC (what a backtest may see):")
 for p in vintage:
+    print(f"  {p['created_at'][:16]}  ${p['price']}")
+
+print("\nsame rows as known today (revisions applied):")
+for p in current[: len(vintage)]:
     print(f"  {p['created_at'][:16]}  ${p['price']}")
 
 # Response headers tell you the vintage contract:

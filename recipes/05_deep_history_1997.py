@@ -14,12 +14,16 @@ import os
 
 import requests
 
+KEY = os.environ.get("OILPRICEAPI_KEY")
+if not KEY:
+    raise SystemExit("Set OILPRICEAPI_KEY — free key at https://oilpriceapi.com/auth/signup")
+
 start = int(dt.datetime(1997, 12, 1, tzinfo=dt.timezone.utc).timestamp())
 end = int(dt.datetime(1998, 1, 1, tzinfo=dt.timezone.utc).timestamp())
 
 resp = requests.get(
     "https://api.oilpriceapi.com/v1/prices",
-    headers={"Authorization": f"Token {os.environ['OILPRICEAPI_KEY']}"},
+    headers={"Authorization": f"Token {KEY}"},
     params={
         "by_code": "NATURAL_GAS_USD",
         "by_period[from]": start,

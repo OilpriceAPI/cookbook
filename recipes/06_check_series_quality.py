@@ -15,11 +15,15 @@ import sys
 
 import requests
 
+KEY = os.environ.get("OILPRICEAPI_KEY")
+if not KEY:
+    raise SystemExit("Set OILPRICEAPI_KEY — free key at https://oilpriceapi.com/auth/signup")
+
 code = sys.argv[1] if len(sys.argv) > 1 else "BRENT_CRUDE_USD"
 
 resp = requests.get(
     f"https://api.oilpriceapi.com/v1/data-quality/reports/{code}",
-    headers={"Authorization": f"Token {os.environ['OILPRICEAPI_KEY']}"},
+    headers={"Authorization": f"Token {KEY}"},
     timeout=10,
 )
 resp.raise_for_status()

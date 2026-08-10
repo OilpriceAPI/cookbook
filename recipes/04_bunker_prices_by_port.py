@@ -14,7 +14,10 @@ import os
 
 import requests
 
-HEADERS = {"Authorization": f"Token {os.environ['OILPRICEAPI_KEY']}"}
+KEY = os.environ.get("OILPRICEAPI_KEY")
+if not KEY:
+    raise SystemExit("Set OILPRICEAPI_KEY — free key at https://oilpriceapi.com/auth/signup")
+HEADERS = {"Authorization": f"Token {KEY}"}
 
 CODES = [
     "VLSFO_SGSIN_USD",   # Singapore
@@ -28,8 +31,11 @@ for code in CODES:
         "https://api.oilpriceapi.com/v1/prices/latest",
         headers=HEADERS, params={"by_code": code}, timeout=10,
     )
+    if resp.status_code in (401, 402, 403):
+        # Surface the API's own explanation instead of faking an empty result
+        raise SystemExit(f"{resp.status_code}: {resp.json().get('error', {}).get('message', resp.text[:200])}")
     data = resp.json().get("data", {}) if resp.ok else {}
-    shown = f"${data['price']}" if data.get("price") is not None else "n/a"
+    shown = f"${data['price']}" if data.get("price") is not None else "no assessment"
     print(f"{code:<20} {shown}")
 
 # Port detail with fuel grades (ISO 8217) and port list:

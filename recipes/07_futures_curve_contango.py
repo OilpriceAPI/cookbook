@@ -13,9 +13,13 @@ import os
 
 import requests
 
+KEY = os.environ.get("OILPRICEAPI_KEY")
+if not KEY:
+    raise SystemExit("Set OILPRICEAPI_KEY — free key at https://oilpriceapi.com/auth/signup")
+
 resp = requests.get(
     "https://api.oilpriceapi.com/v1/futures/ice-brent/curve",
-    headers={"Authorization": f"Token {os.environ['OILPRICEAPI_KEY']}"},
+    headers={"Authorization": f"Token {KEY}"},
     timeout=10,
 )
 resp.raise_for_status()
