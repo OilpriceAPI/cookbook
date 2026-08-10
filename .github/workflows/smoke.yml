@@ -1,5 +1,6 @@
 name: Recipes smoke
 on:
+  pull_request:
   schedule:
     - cron: "23 7 * * 1" # Mondays 07:23 UTC
   push:
