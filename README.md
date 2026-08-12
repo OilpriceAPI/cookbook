@@ -93,15 +93,13 @@ VLSFO_BRSSZ_USD 791.50      USD     metric_ton
 
 ## Keys and plans
 
-The free tier serves **latest prices only** (50 requests/month) — history,
-`as_of`, and gas hubs are the $19 unlock; futures curves and the marine port
-surface are the $99 unlock. Prices as of 2026-08-10; the reviewed source for
-plan facts is
+The Free allowance is **50 requests/day**. Dataset access and limits vary by
+plan, source, and account entitlement; check the pricing page before depending
+on a paid dataset. Prices as of 2026-08-10; the reviewed source for plan facts is
 [product-facts.json](https://api.oilpriceapi.com/product-facts.json) and the
 current ladder is at [oilpriceapi.com/pricing](https://oilpriceapi.com/pricing).
-The live contract currently reports `contractVersion` and `reviewedAt` as
-2026-07-18; this cookbook reports that metadata as-is rather than inferring a
-new version from the later verification date.
+The v2 contract reports `contractVersion` and `reviewedAt` as 2026-08-11 and
+expresses the allowance as a typed limit plus reset window.
 [Sign up](https://oilpriceapi.com/auth/signup) ·
 [Docs](https://docs.oilpriceapi.com)
 

@@ -94,7 +94,7 @@
   {
     "file": "recipes/10_resilient_client.py",
     "title": "Production client: errors, 429 backoff, quota",
-    "endpoints": ["/v1/prices/latest", "/v1/dashboard"],
+    "endpoints": ["/v1/prices/latest"],
     "min_plan_usd_month": 0,
     "key_required": true,
     "intents": ["error handling", "rate limits", "retry", "quota"]

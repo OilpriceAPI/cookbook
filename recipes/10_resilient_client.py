@@ -1,8 +1,8 @@
-"""A production client in 40 lines — errors, 429 backoff, quota headers.
+"""A compact production client — errors, bounded 429 backoff, quota headers.
 
-The first error a free-tier integration meets is the 50-request monthly
-cap. This recipe shows what the API's errors actually look like and how
-to handle them, instead of a stack trace.
+The Free allowance is 50 requests/day. This recipe reads the effective limit,
+window, state, and reset from the same response the API just served, so it also
+works for paid, trial, credit, and courtesy entitlements.
 
 Every error response carries a structured envelope:
 
@@ -16,30 +16,51 @@ Keep the request_id — support can trace the exact request from it.
 
 import os
 import time
+from datetime import datetime, timezone
 
 import requests
 
-KEY = os.environ.get("OILPRICEAPI_KEY")
-if not KEY:
-    raise SystemExit("Set OILPRICEAPI_KEY — free key at https://oilpriceapi.com/auth/signup")
-
 BASE = "https://api.oilpriceapi.com"
+QUOTA_HEADERS = {
+    "limit": "X-RateLimit-Limit",
+    "remaining": "X-RateLimit-Remaining",
+    "used": "X-RateLimit-Used",
+    "window": "X-RateLimit-Window",
+    "state": "X-RateLimit-State",
+    "reset": "X-RateLimit-Reset",
+}
 
 
-def call(path: str, params: dict | None = None, retries: int = 3) -> dict:
+def quota_from(response: requests.Response) -> dict[str, str]:
+    quota = {name: response.headers.get(header) for name, header in QUOTA_HEADERS.items()}
+    missing = [QUOTA_HEADERS[name] for name, value in quota.items() if value is None]
+    if missing:
+        raise RuntimeError(f"response omitted quota headers: {', '.join(missing)}")
+    return quota
+
+
+def call(
+    key: str, path: str, params: dict | None = None, retries: int = 3
+) -> tuple[dict, dict[str, str]]:
     for attempt in range(retries):
         resp = requests.get(
             f"{BASE}{path}",
-            headers={"Authorization": f"Token {KEY}"},
+            headers={"Authorization": f"Token {key}"},
             params=params,
             timeout=10,
         )
         if resp.status_code == 429:
-            wait = int(resp.headers.get("Retry-After", 2 ** attempt))
+            quota = quota_from(resp)
+            if quota["state"] == "exhausted" and quota["window"] in {"daily", "day"}:
+                raise RuntimeError(
+                    f"quota exhausted: {quota['used']}/{quota['limit']} in the "
+                    f"{quota['window']} window; reset={quota['reset']}"
+                )
+            wait = min(int(resp.headers.get("Retry-After", 2**attempt)), 30)
             time.sleep(wait)
             continue
         if resp.ok:
-            return resp.json()
+            return resp.json(), quota_from(resp)
         err = resp.json().get("error", {})
         raise RuntimeError(
             f"{err.get('code', resp.status_code)}: {err.get('message', 'unknown')} "
@@ -48,11 +69,22 @@ def call(path: str, params: dict | None = None, retries: int = 3) -> dict:
     raise RuntimeError("rate-limited after retries")
 
 
-data = call("/v1/prices/latest", {"by_code": "BRENT_CRUDE_USD"})
-print(data["data"]["code"], data["data"]["price"])
+def main() -> None:
+    key = os.environ.get("OILPRICEAPI_KEY")
+    if not key:
+        raise SystemExit(
+            "Set OILPRICEAPI_KEY — free key at https://oilpriceapi.com/auth/signup"
+        )
 
-# Watch your quota as you go — the response carries usage headers; check
-# your plan and remaining calls anytime:
-#   GET /v1/dashboard  -> usage.current_month.{used,remaining,reset_at}
-usage = call("/v1/dashboard")["data"]["usage"]["current_month"]
-print(f"quota: {usage['used']} used, {usage['remaining']} remaining, resets {usage['reset_at'][:10]}")
+    data, quota = call(key, "/v1/prices/latest", {"by_code": "BRENT_CRUDE_USD"})
+    print(data["data"]["code"], data["data"]["price"])
+
+    reset_at = datetime.fromtimestamp(int(quota["reset"]), tz=timezone.utc).isoformat()
+    print(
+        f"quota: {quota['used']}/{quota['limit']} used in the {quota['window']} window, "
+        f"{quota['remaining']} remaining, state={quota['state']}, resets {reset_at}"
+    )
+
+
+if __name__ == "__main__":
+    main()
