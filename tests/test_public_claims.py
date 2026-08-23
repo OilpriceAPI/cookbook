@@ -177,7 +177,7 @@ class PublicClaimCheckTest(unittest.TestCase):
 
         check_repository(self.root, self.product_facts)
 
-    def test_product_facts_v1_is_rejected_as_legacy(self):
+    def test_product_facts_without_daily_window_is_rejected(self):
         legacy = {
             "schemaVersion": "1.0.0",
             "contractVersion": "2026-07-18",
@@ -186,16 +186,16 @@ class PublicClaimCheckTest(unittest.TestCase):
             "offer": {"freeRequestsPerMonth": 50},
         }
 
-        with self.assertRaisesRegex(ClaimCheckError, "schemaVersion must be exactly 2.0.0"):
+        with self.assertRaisesRegex(ClaimCheckError, "missing fields"):
             check_repository(self.root, legacy)
 
     def test_unknown_schema_version_is_rejected(self):
-        for version in ("2foo", "2.0", "3.0.0"):
+        for version in ("1foo", "2.0", "3.0.0"):
             with self.subTest(version=version):
                 facts = copy.deepcopy(self.product_facts)
                 facts["schemaVersion"] = version
                 with self.assertRaisesRegex(
-                    ClaimCheckError, "schemaVersion must be exactly 2.0.0"
+                    ClaimCheckError, "schemaVersion must be exactly 1.0.0"
                 ):
                     check_repository(self.root, facts)
 
@@ -221,9 +221,9 @@ class PublicClaimCheckTest(unittest.TestCase):
         for value in (True, 0, "50"):
             with self.subTest(value=value):
                 facts = copy.deepcopy(self.product_facts)
-                facts["offer"]["freeRequestLimit"] = value
+                facts["offer"]["freeRequestsPerMonth"] = value
                 with self.assertRaisesRegex(
-                    ClaimCheckError, "offer.freeRequestLimit must be a positive integer"
+                    ClaimCheckError, "offer.freeRequestsPerMonth must be a positive integer"
                 ):
                     check_repository(self.root, facts)
 
@@ -231,9 +231,9 @@ class PublicClaimCheckTest(unittest.TestCase):
         for window in ("daily", "year", 1):
             with self.subTest(window=window):
                 facts = copy.deepcopy(self.product_facts)
-                facts["offer"]["freeRequestWindow"] = window
+                facts["offer"]["freeRequestsWindow"] = window
                 with self.assertRaisesRegex(
-                    ClaimCheckError, "offer.freeRequestWindow must be day or month"
+                    ClaimCheckError, "offer.freeRequestsWindow must be day or month"
                 ):
                     check_repository(self.root, facts)
 
@@ -287,7 +287,7 @@ class PublicClaimCheckTest(unittest.TestCase):
         payload = json.dumps(self.product_facts)
         fixture.write_text(
             payload.replace(
-                '"schemaVersion": "2.0.0"',
+                '"schemaVersion": "1.0.0"',
                 '"schemaVersion": "1.0.0", "schemaVersion": "2.0.0"',
                 1,
             ),

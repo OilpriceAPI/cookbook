@@ -17,9 +17,9 @@ from urllib.request import Request, urlopen
 
 PRODUCT_FACTS_URL = "https://api.oilpriceapi.com/product-facts.json"
 PRODUCT_FACTS_SCHEMA_URL = (
-    "https://api.oilpriceapi.com/schemas/product-facts-v2.schema.json"
+    "https://api.oilpriceapi.com/schemas/product-facts-v1.schema.json"
 )
-PRODUCT_FACTS_SCHEMA_VERSION = "2.0.0"
+PRODUCT_FACTS_SCHEMA_VERSION = "1.0.0"
 API_ORIGIN = "https://api.oilpriceapi.com"
 MAX_PRODUCT_FACTS_BYTES = 256 * 1024
 PRODUCT_FACT_KEYS = {
@@ -47,8 +47,8 @@ PRODUCT_FACT_KEYS = {
             "trialDays",
             "trialRequests",
             "trialScope",
-            "freeRequestLimit",
-            "freeRequestWindow",
+            "freeRequestsPerMonth",
+            "freeRequestsWindow",
             "creditCardRequiredForTrial",
             "pricingUrl",
             "qualification",
@@ -216,14 +216,13 @@ def _validate_provenance(product_facts: dict[str, Any]) -> None:
 
 
 def validate_product_facts(product_facts: dict[str, Any]) -> None:
-    """Validate the exact released flat v2 contract before using any claim."""
+    """Validate the exact released product-facts contract before using any claim."""
 
     if not isinstance(product_facts, dict):
         raise ClaimCheckError("product facts must be a JSON object")
     if product_facts.get("schemaVersion") != PRODUCT_FACTS_SCHEMA_VERSION:
         raise ClaimCheckError(
-            f"schemaVersion must be exactly {PRODUCT_FACTS_SCHEMA_VERSION}; "
-            "v1 freeRequestsPerMonth is legacy and cannot describe a daily allowance"
+            f"schemaVersion must be exactly {PRODUCT_FACTS_SCHEMA_VERSION}"
         )
 
     root = _exact_object(product_facts, "product facts", PRODUCT_FACT_KEYS["root"])
@@ -248,14 +247,17 @@ def validate_product_facts(product_facts: dict[str, Any]) -> None:
         raise ClaimCheckError(f"product.apiBaseUrl must be exactly {API_ORIGIN}")
 
     offer = sections["offer"]
-    for field in ("trialDays", "trialRequests", "freeRequestLimit"):
+    # The released v1 field retains its original name for compatibility. The
+    # companion window is authoritative, so this is 50/day when the window is
+    # ``day``; consumers must never infer ``month`` from the field name.
+    for field in ("trialDays", "trialRequests", "freeRequestsPerMonth"):
         _positive_integer(offer[field], f"offer.{field}")
     for field in ("trialScope", "qualification"):
         _nonempty_string(offer[field], f"offer.{field}")
     _boolean(offer["creditCardRequiredForTrial"], "offer.creditCardRequiredForTrial")
     _https_url(offer["pricingUrl"], "offer.pricingUrl")
-    if offer["freeRequestWindow"] not in {"day", "month"}:
-        raise ClaimCheckError("offer.freeRequestWindow must be day or month")
+    if offer["freeRequestsWindow"] not in {"day", "month"}:
+        raise ClaimCheckError("offer.freeRequestsWindow must be day or month")
 
     catalog = sections["catalog"]
     _nonempty_string(catalog["publicWording"], "catalog.publicWording")
@@ -345,7 +347,7 @@ def _public_sources(root: Path) -> dict[Path, str]:
 
 def _canonical_allowance(product_facts: dict[str, Any]) -> tuple[int, str]:
     offer = product_facts["offer"]
-    return offer["freeRequestLimit"], offer["freeRequestWindow"]
+    return offer["freeRequestsPerMonth"], offer["freeRequestsWindow"]
 
 
 def _parse_count(value: str) -> int:
@@ -632,8 +634,8 @@ def main() -> int:
 
     print(
         "public claims OK: "
-        f"freeRequestLimit={product_facts['offer']['freeRequestLimit']}; "
-        f"freeRequestWindow={product_facts['offer']['freeRequestWindow']}; "
+        f"freeRequestLimit={product_facts['offer']['freeRequestsPerMonth']}; "
+        f"freeRequestWindow={product_facts['offer']['freeRequestsWindow']}; "
         f"contractVersion={product_facts.get('contractVersion', 'unreported')}; "
         f"reviewedAt={product_facts.get('reviewedAt', 'unreported')}"
     )
