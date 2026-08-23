@@ -56,6 +56,12 @@ Already pulling one benchmark on a schedule? These are the natural next calls.
 | 05  | [Deep history to 1997](recipes/05_deep_history_1997.py) — arbitrary ranges via `by_period`                       | $19+ |
 | 07  | [Futures curve structure](recipes/07_futures_curve_contango.py) — full Brent curve + contango/backwardation call | $99+ |
 
+**Stop polling**
+
+| #  | Recipe | Key |
+| -- | ------ | --- |
+| 11 | [Alerts, signed webhooks, and watches](recipes/11_stop_polling_push.py) — verify a real push delivery, print the watch's next run, then clean up every temporary resource | $49+ |
+
 ## Sample output (verified 2026-08-10)
 
 **02 — the point-in-time view.** On 7 Aug 2026 US diesel printed 3.88, then
@@ -98,8 +104,9 @@ plan, source, and account entitlement; check the pricing page before depending
 on a paid dataset. Prices as of 2026-08-10; the reviewed source for plan facts is
 [product-facts.json](https://api.oilpriceapi.com/product-facts.json) and the
 current ladder is at [oilpriceapi.com/pricing](https://oilpriceapi.com/pricing).
-The v2 contract reports `contractVersion` and `reviewedAt` as 2026-08-11 and
-expresses the allowance as a typed limit plus reset window.
+The released contract reports `contractVersion` and `reviewedAt`; use the
+explicit `freeRequestsWindow` value rather than inferring a window from the
+legacy `freeRequestsPerMonth` field name.
 [Sign up](https://oilpriceapi.com/auth/signup) ·
 [Docs](https://docs.oilpriceapi.com)
 

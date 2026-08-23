@@ -98,5 +98,13 @@
     "min_plan_usd_month": 0,
     "key_required": true,
     "intents": ["error handling", "rate limits", "retry", "quota"]
+  },
+  {
+    "file": "recipes/11_stop_polling_push.py",
+    "title": "Stop polling: alerts, signed webhooks, and watches",
+    "endpoints": ["/v1/alerts", "/v1/webhooks", "/v1/subscriptions"],
+    "min_plan_usd_month": 49,
+    "key_required": true,
+    "intents": ["price alerts", "webhooks", "push", "watches", "quota efficiency"]
   }
 ]
