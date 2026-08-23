@@ -14,4 +14,4 @@ resp.raise_for_status()
 for price in resp.json()["data"]["prices"][:5]:
     print(f"{price['code']:<22} ${price['price']:>9}")
 
-# Free key (200 requests/month): https://oilpriceapi.com/auth/signup
+# Free key (50 requests/day): https://oilpriceapi.com/auth/signup

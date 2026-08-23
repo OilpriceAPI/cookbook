@@ -37,7 +37,7 @@ MCP config and a framework-free tool function for OpenAI/LangChain agents.
 | #   | Recipe                                                                                                                          | Key  |
 | --- | ------------------------------------------------------------------------------------------------------------------------------- | ---- |
 | 06  | [Check series quality first](recipes/06_check_series_quality.py) — per-series grades from measured completeness/freshness       | $19+ |
-| 02  | [Backtest without lookahead bias](recipes/02_backtest_without_lookahead.py) — `as_of` shows data as it was knowable on any date | $19+ |
+| 02  | [Backtest without lookahead bias](recipes/02_backtest_without_lookahead.py) — `as_of` reconstructs supported raw-window vintages | $19+ |
 
 **Widen it — same key, your second call**
 
@@ -68,6 +68,12 @@ same rows as known today (revisions applied):
   2026-08-07T15:10  $3.9
 ```
 
+`as_of` is currently supported only on `/v1/prices/past_day`,
+`/v1/prices/past_week`, `/v1/prices/past_month`, and
+`/v1/prices/past_year`, with `interval=raw`. Rows observed after the requested
+instant are absent. Correction rollback covers revisions recorded from
+2026-07-28 forward; it is not a claim of earlier correction-vintage coverage.
+
 **03 — hub basis.** Permian gas under the benchmark, as usual:
 
 ```
@@ -87,12 +93,13 @@ VLSFO_BRSSZ_USD 791.50      USD     metric_ton
 
 ## Keys and plans
 
-The free tier serves **latest prices only** (200 requests/month) — history,
-`as_of`, and gas hubs are the $19 unlock; futures curves and the marine port
-surface are the $99 unlock. Prices as of 2026-08-10; the reviewed source for
-plan facts is
+The Free allowance is **50 requests/day**. Dataset access and limits vary by
+plan, source, and account entitlement; check the pricing page before depending
+on a paid dataset. Prices as of 2026-08-10; the reviewed source for plan facts is
 [product-facts.json](https://api.oilpriceapi.com/product-facts.json) and the
 current ladder is at [oilpriceapi.com/pricing](https://oilpriceapi.com/pricing).
+The v2 contract reports `contractVersion` and `reviewedAt` as 2026-08-11 and
+expresses the allowance as a typed limit plus reset window.
 [Sign up](https://oilpriceapi.com/auth/signup) ·
 [Docs](https://docs.oilpriceapi.com)
 
