@@ -25,3 +25,6 @@ jobs:
       # Only the keyless recipe runs in CI — no secrets in a public repo.
       # A recipe that stops working must fail loudly, not sit broken.
       - run: python recipes/01_first_price_no_key.py
+      # Keyless paths of the JavaScript (Node 18+ fetch) and curl+jq recipes.
+      - run: node --version && node js/12_first_price.mjs
+      - run: bash curl/13_first_price.sh

@@ -10,6 +10,8 @@ real and dated.
 ```bash
 python -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python recipes/01_first_price_no_key.py   # works with NO key
+node js/12_first_price.mjs                           # Node 18+, no npm install
+bash curl/13_first_price.sh                          # curl + jq
 ```
 
 Machine-readable index: [`recipes.json`](recipes.json) · Agent spec:
@@ -31,6 +33,8 @@ MCP config and a framework-free tool function for OpenAI/LangChain agents.
 | 01  | [First price, no key](recipes/01_first_price_no_key.py) — the no-key demo serves 37 codes from the full catalogue | none  |
 | 10  | [A production client in 40 lines](recipes/10_resilient_client.py) — error envelope, 429 backoff, quota check      | free+ |
 | 09  | [Give an AI agent prices](recipes/09_agent_tool.py) — tool function + OpenAI schema + MCP config                  | free+ |
+| 12  | [First price from Node.js](js/12_first_price.mjs) — built-in `fetch`, no dependencies; demo without a key, quota headers with one | none / [free key](https://oilpriceapi.com/auth/signup?utm_source=github_examples&utm_medium=integration&utm_campaign=acq_q4) |
+| 13  | [Prices from the shell](curl/13_first_price.sh) — `curl` + `jq`; several codes in one call | none / [free key](https://oilpriceapi.com/auth/signup?utm_source=github_examples&utm_medium=integration&utm_campaign=acq_q4) |
 
 **Trust it**
 
@@ -61,6 +65,14 @@ Already pulling one benchmark on a schedule? These are the natural next calls.
 | #  | Recipe | Key |
 | -- | ------ | --- |
 | 11 | [Alerts, signed webhooks, and watches](recipes/11_stop_polling_push.py) — verify a real push delivery, print the watch's next run, then clean up every temporary resource | $49+ |
+| 14 | [Webhook receiver that verifies signatures](recipes/14_webhook_receiver.py) — HMAC-SHA256 over the raw body and timestamp, replay window, retry de-duplication | $49+ ([sign up](https://oilpriceapi.com/auth/signup?utm_source=github_examples&utm_medium=integration&utm_campaign=acq_q4)) |
+| 15 | [Price alert to your webhook](recipes/15_alert_to_webhook.py) — register the endpoint for `alert.triggered`, create the alert, test it | $49+ ([sign up](https://oilpriceapi.com/auth/signup?utm_source=github_examples&utm_medium=integration&utm_campaign=acq_q4)) |
+
+**Run a fleet**
+
+| #  | Recipe | Key |
+| -- | ------ | --- |
+| 16 | [Weekly fuel surcharge](recipes/16_fuel_surcharge.py) — your schedule against the DOE (EIA) weekly diesel index, `DIESEL_RETAIL_USD` or a region | [free key](https://oilpriceapi.com/auth/signup?utm_source=github_examples&utm_medium=integration&utm_campaign=acq_q4) |
 
 ## Sample output (verified 2026-08-10)
 
