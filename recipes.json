@@ -106,5 +106,48 @@
     "min_plan_usd_month": 49,
     "key_required": true,
     "intents": ["price alerts", "webhooks", "push", "watches", "quota efficiency"]
+  },
+  {
+    "file": "js/12_first_price.mjs",
+    "title": "First price from Node.js (built-in fetch, no dependencies)",
+    "language": "javascript",
+    "endpoints": ["/v1/demo/prices/latest", "/v1/prices/latest"],
+    "min_plan_usd_month": 0,
+    "key_required": false,
+    "intents": ["JavaScript", "Node.js", "fetch", "no dependencies"]
+  },
+  {
+    "file": "curl/13_first_price.sh",
+    "title": "Prices from the shell with curl and jq",
+    "language": "shell",
+    "endpoints": ["/v1/demo/prices/latest", "/v1/prices/latest"],
+    "min_plan_usd_month": 0,
+    "key_required": false,
+    "intents": ["curl", "shell", "bash", "jq"]
+  },
+  {
+    "file": "recipes/14_webhook_receiver.py",
+    "title": "Webhook receiver that verifies signatures",
+    "endpoints": [],
+    "headers_demonstrated": ["X-OilPriceAPI-Signature", "X-OilPriceAPI-Signature-Timestamp", "X-OilPriceAPI-Event", "X-OilPriceAPI-Event-ID"],
+    "min_plan_usd_month": 49,
+    "key_required": false,
+    "intents": ["webhook receiver", "HMAC signature", "verify webhook", "idempotency"]
+  },
+  {
+    "file": "recipes/15_alert_to_webhook.py",
+    "title": "Price alert delivered to your webhook",
+    "endpoints": ["/v1/webhooks", "/v1/alerts", "/v1/alerts/{id}/test"],
+    "min_plan_usd_month": 49,
+    "key_required": true,
+    "intents": ["price alert", "alert webhook", "alert.triggered", "threshold"]
+  },
+  {
+    "file": "recipes/16_fuel_surcharge.py",
+    "title": "Weekly fuel surcharge from the DOE diesel index",
+    "endpoints": ["/v1/fuel-surcharge/calculate", "/v1/prices/latest"],
+    "min_plan_usd_month": 0,
+    "key_required": true,
+    "intents": ["fuel surcharge", "DOE diesel", "DIESEL_RETAIL_USD", "trucking"]
   }
 ]

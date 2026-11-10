@@ -1,0 +1,7 @@
+{
+  "generated_by": "ruby 3.4.9: OpenSSL::HMAC.hexdigest(\"SHA256\", secret, \"#{body}.#{timestamp}\"), the call in oilpriceapi-api app/services/webhook_delivery_service.rb",
+  "secret": "576f7548bba6438174bce0e3623c7a9c3622c3393454ee74791b54e94c1f6217",
+  "timestamp": "1794277800",
+  "body": "{\"id\":\"5f0e3c1a-7d2b-4c0e-9a51-2b7f4d8e6c13\",\"event\":\"alert.triggered\",\"created_at\":\"2026-11-10T01:30:00Z\",\"data\":{\"alert_id\":42,\"alert_name\":\"Diesel above $6 & rising\",\"commodity_code\":\"DIESEL_RETAIL_USD\",\"price_value\":6.292,\"threshold_value\":6.0,\"threshold_operator\":\"greater_than\",\"condition_met\":true,\"trigger_count\":1,\"metadata\":{},\"timestamp\":\"2026-11-03T21:03:34Z\"}}",
+  "signature": "a278527d43f164898ce5c484127b16dabe9734bf9481bd4a56c391b5c4bb291b"
+}
